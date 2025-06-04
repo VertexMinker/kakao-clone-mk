@@ -3,65 +3,79 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { productService } from '../services/productService';
 import { Product, ProductFilter } from '../types/product';
-import { Search, Filter, Plus, FileDown, FileUp, AlertTriangle } from 'lucide-react';
+import {
+  Search,
+  Filter,
+  Plus,
+  FileDown,
+  FileUp,
+  AlertTriangle,
+} from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
 const ProductsPage = () => {
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
-  
+
   const [filters, setFilters] = useState<ProductFilter>({
     search: '',
     category: '',
     brand: '',
     location: '',
-    lowStock: false
+    lowStock: false,
   });
-  
+
   const [categories, setCategories] = useState<string[]>([]);
   const [brands, setBrands] = useState<string[]>([]);
   const [locations, setLocations] = useState<string[]>([]);
-  
-  const { data: products = [], isLoading, error, refetch } = useQuery({
+
+  const {
+    data: products = [],
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ['products', filters],
-    queryFn: () => productService.getProducts(filters)
+    queryFn: () => productService.getProducts(filters),
   });
-  
+
   // 카테고리, 브랜드, 위치 목록 추출
   useEffect(() => {
     if (products.length > 0) {
-      const uniqueCategories = [...new Set(products.map(p => p.category))];
-      const uniqueBrands = [...new Set(products.map(p => p.brand))];
-      const uniqueLocations = [...new Set(products.map(p => p.location))];
-      
+      const uniqueCategories = [...new Set(products.map((p) => p.category))];
+      const uniqueBrands = [...new Set(products.map((p) => p.brand))];
+      const uniqueLocations = [...new Set(products.map((p) => p.location))];
+
       setCategories(uniqueCategories);
       setBrands(uniqueBrands);
       setLocations(uniqueLocations);
     }
   }, [products]);
-  
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFilters(prev => ({ ...prev, search: e.target.value }));
+    setFilters((prev) => ({ ...prev, search: e.target.value }));
   };
-  
+
   const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFilters(prev => ({ ...prev, [name]: value }));
+    setFilters((prev) => ({ ...prev, [name]: value }));
   };
-  
+
   const handleLowStockToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFilters(prev => ({ ...prev, lowStock: e.target.checked }));
+    setFilters((prev) => ({ ...prev, lowStock: e.target.checked }));
   };
-  
+
   const handleExport = () => {
     const exportUrl = productService.getExportUrl(filters);
     window.open(exportUrl, '_blank');
   };
-  
+
   return (
     <div className="container mx-auto px-4">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4 md:mb-0">제품 관리</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-4 md:mb-0">
+          제품 관리
+        </h1>
         <div className="flex flex-col sm:flex-row gap-2">
           {isAdmin && (
             <>
@@ -90,7 +104,7 @@ const ProductsPage = () => {
           )}
         </div>
       </div>
-      
+
       <div className="bg-white shadow rounded-lg mb-6">
         <div className="p-4 border-b border-gray-200">
           <h2 className="text-lg font-medium text-gray-900 flex items-center">
@@ -113,7 +127,7 @@ const ProductsPage = () => {
                 className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-kyobo focus:border-kyobo sm:text-sm"
               />
             </div>
-            
+
             <div>
               <select
                 name="category"
@@ -122,12 +136,14 @@ const ProductsPage = () => {
                 className="block w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-kyobo focus:border-kyobo sm:text-sm"
               >
                 <option value="">모든 카테고리</option>
-                {categories.map(category => (
-                  <option key={category} value={category}>{category}</option>
+                {categories.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
                 ))}
               </select>
             </div>
-            
+
             <div>
               <select
                 name="brand"
@@ -136,12 +152,14 @@ const ProductsPage = () => {
                 className="block w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-kyobo focus:border-kyobo sm:text-sm"
               >
                 <option value="">모든 브랜드</option>
-                {brands.map(brand => (
-                  <option key={brand} value={brand}>{brand}</option>
+                {brands.map((brand) => (
+                  <option key={brand} value={brand}>
+                    {brand}
+                  </option>
                 ))}
               </select>
             </div>
-            
+
             <div>
               <select
                 name="location"
@@ -150,12 +168,14 @@ const ProductsPage = () => {
                 className="block w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-kyobo focus:border-kyobo sm:text-sm"
               >
                 <option value="">모든 위치</option>
-                {locations.map(location => (
-                  <option key={location} value={location}>{location}</option>
+                {locations.map((location) => (
+                  <option key={location} value={location}>
+                    {location}
+                  </option>
                 ))}
               </select>
             </div>
-            
+
             <div className="flex items-center">
               <input
                 id="lowStock"
@@ -165,14 +185,17 @@ const ProductsPage = () => {
                 onChange={handleLowStockToggle}
                 className="h-4 w-4 text-kyobo focus:ring-kyobo border-gray-300 rounded"
               />
-              <label htmlFor="lowStock" className="ml-2 block text-sm text-gray-900">
+              <label
+                htmlFor="lowStock"
+                className="ml-2 block text-sm text-gray-900"
+              >
                 저재고 상품만 보기
               </label>
             </div>
           </div>
         </div>
       </div>
-      
+
       {isLoading ? (
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-kyobo"></div>
@@ -202,28 +225,52 @@ const ProductsPage = () => {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
                         SKU
                       </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
                         상품명
                       </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
                         카테고리
                       </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
                         브랜드
                       </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
                         위치
                       </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
                         수량
                       </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
                         단가
                       </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
                         작업
                       </th>
                     </tr>
@@ -235,7 +282,10 @@ const ProductsPage = () => {
                           {product.sku}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          <Link to={`/products/${product.id}`} className="text-kyobo hover:underline">
+                          <Link
+                            to={`/products/${product.id}`}
+                            className="text-kyobo hover:underline"
+                          >
                             {product.name}
                           </Link>
                         </td>
@@ -249,11 +299,13 @@ const ProductsPage = () => {
                           {product.location}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            product.quantity <= product.safetyStock
-                              ? 'bg-red-100 text-red-800'
-                              : 'bg-green-100 text-green-800'
-                          }`}>
+                          <span
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              product.quantity <= product.safetyStock
+                                ? 'bg-red-100 text-red-800'
+                                : 'bg-green-100 text-green-800'
+                            }`}
+                          >
                             {product.quantity} / {product.safetyStock}
                           </span>
                         </td>

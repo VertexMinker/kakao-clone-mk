@@ -21,11 +21,11 @@ declare global {
 export const authenticate = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const authHeader = req.headers.authorization;
-    
+
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({
         status: 'error',
@@ -34,7 +34,7 @@ export const authenticate = async (
     }
 
     const token = authHeader.split(' ')[1];
-    
+
     if (!token) {
       return res.status(401).json({
         status: 'error',
@@ -44,7 +44,7 @@ export const authenticate = async (
 
     const decoded = jwt.verify(
       token,
-      process.env.JWT_SECRET || 'fallback-secret-key'
+      process.env.JWT_SECRET || 'fallback-secret-key',
     ) as JwtPayload;
 
     req.user = {
@@ -64,7 +64,7 @@ export const authenticate = async (
 export const authorizeAdmin = (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   if (!req.user || req.user.role !== 'admin') {
     return res.status(403).json({

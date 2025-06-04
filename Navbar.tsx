@@ -1,7 +1,13 @@
 import { User } from '../types/user';
 import { useAuth } from '../hooks/useAuth';
 import { Link } from 'react-router-dom';
-import { Wifi, WifiOff, RefreshCw, LogOut, User as UserIcon } from 'lucide-react';
+import {
+  Wifi,
+  WifiOff,
+  RefreshCw,
+  LogOut,
+  User as UserIcon,
+} from 'lucide-react';
 
 interface NavbarProps {
   user: User | null;
@@ -17,15 +23,17 @@ const Navbar = ({ user, isOnline, onSync }: NavbarProps) => {
       <div className="flex items-center justify-between px-4 py-3">
         <div className="flex items-center">
           <Link to="/" className="flex items-center">
-            <img 
-              src="/logo.svg" 
-              alt="교보문고 핫트랙스" 
-              className="h-8 w-auto mr-2" 
+            <img
+              src="/logo.svg"
+              alt="교보문고 핫트랙스"
+              className="h-8 w-auto mr-2"
             />
-            <span className="text-lg font-semibold text-kyobo">송도점 재고관리</span>
+            <span className="text-lg font-semibold text-kyobo">
+              송도점 재고관리
+            </span>
           </Link>
         </div>
-        
+
         <div className="flex items-center space-x-4">
           {/* 온라인 상태 표시 */}
           <div className="flex items-center text-sm">
@@ -38,7 +46,7 @@ const Navbar = ({ user, isOnline, onSync }: NavbarProps) => {
               {isOnline ? '온라인' : '오프라인'}
             </span>
           </div>
-          
+
           {/* 동기화 버튼 */}
           <button
             onClick={onSync}
@@ -48,7 +56,7 @@ const Navbar = ({ user, isOnline, onSync }: NavbarProps) => {
           >
             <RefreshCw className="h-5 w-5 text-gray-600" />
           </button>
-          
+
           {/* 사용자 정보 */}
           <div className="flex items-center text-sm">
             <UserIcon className="h-4 w-4 text-gray-500 mr-1" />
@@ -56,7 +64,7 @@ const Navbar = ({ user, isOnline, onSync }: NavbarProps) => {
               {user?.name} ({user?.role === 'admin' ? '관리자' : '직원'})
             </span>
           </div>
-          
+
           {/* 로그아웃 버튼 */}
           <button
             onClick={logout}

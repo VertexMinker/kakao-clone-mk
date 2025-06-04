@@ -4,26 +4,37 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { productService } from '../services/productService';
 import { LocationHistory } from '../types/product';
 import { useAuth } from '../hooks/useAuth';
-import { Edit, Trash, ArrowLeftRight, Clock, AlertTriangle, ArrowLeft } from 'lucide-react';
+import {
+  Edit,
+  Trash,
+  ArrowLeftRight,
+  Clock,
+  AlertTriangle,
+  ArrowLeft,
+} from 'lucide-react';
 
 const ProductDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
-  
+
   const [showLocationHistory, setShowLocationHistory] = useState(false);
   const [locationHistory, setLocationHistory] = useState<LocationHistory[]>([]);
-  
-  const { data: product, isLoading, error } = useQuery({
+
+  const {
+    data: product,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ['product', id],
     queryFn: () => productService.getProductById(id!),
-    enabled: !!id
+    enabled: !!id,
   });
-  
+
   const handleViewLocationHistory = async () => {
     if (!id) return;
-    
+
     try {
       const history = await productService.getLocationHistory(id);
       setLocationHistory(history);
@@ -32,11 +43,15 @@ const ProductDetailPage = () => {
       console.error('위치 이력 조회 오류:', error);
     }
   };
-  
+
   const handleDelete = async () => {
     if (!id || !isAdmin) return;
-    
-    if (window.confirm('정말로 이 제품을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
+
+    if (
+      window.confirm(
+        '정말로 이 제품을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.',
+      )
+    ) {
       try {
         await productService.deleteProduct(id);
         navigate('/products');
@@ -45,7 +60,7 @@ const ProductDetailPage = () => {
       }
     }
   };
-  
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -53,7 +68,7 @@ const ProductDetailPage = () => {
       </div>
     );
   }
-  
+
   if (error || !product) {
     return (
       <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
@@ -70,7 +85,7 @@ const ProductDetailPage = () => {
       </div>
     );
   }
-  
+
   return (
     <div className="container mx-auto px-4">
       <div className="flex items-center mb-6">
@@ -82,12 +97,16 @@ const ProductDetailPage = () => {
         </button>
         <h1 className="text-2xl font-bold text-gray-900">제품 상세</h1>
       </div>
-      
+
       <div className="bg-white shadow overflow-hidden rounded-lg">
         <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
           <div>
-            <h2 className="text-lg font-medium text-gray-900">{product.name}</h2>
-            <p className="mt-1 max-w-2xl text-sm text-gray-500">SKU: {product.sku}</p>
+            <h2 className="text-lg font-medium text-gray-900">
+              {product.name}
+            </h2>
+            <p className="mt-1 max-w-2xl text-sm text-gray-500">
+              SKU: {product.sku}
+            </p>
           </div>
           <div className="flex space-x-2">
             {isAdmin && (
@@ -134,31 +153,41 @@ const ProductDetailPage = () => {
           <dl>
             <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
               <dt className="text-sm font-medium text-gray-500">카테고리</dt>
-              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{product.category}</dd>
+              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                {product.category}
+              </dd>
             </div>
             <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
               <dt className="text-sm font-medium text-gray-500">브랜드</dt>
-              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{product.brand}</dd>
+              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                {product.brand}
+              </dd>
             </div>
             <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
               <dt className="text-sm font-medium text-gray-500">현재 위치</dt>
-              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{product.location}</dd>
+              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                {product.location}
+              </dd>
             </div>
             <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
               <dt className="text-sm font-medium text-gray-500">재고 수량</dt>
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                  product.quantity <= product.safetyStock
-                    ? 'bg-red-100 text-red-800'
-                    : 'bg-green-100 text-green-800'
-                }`}>
+                <span
+                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    product.quantity <= product.safetyStock
+                      ? 'bg-red-100 text-red-800'
+                      : 'bg-green-100 text-green-800'
+                  }`}
+                >
                   {product.quantity} / {product.safetyStock} (안전재고)
                 </span>
               </dd>
             </div>
             <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
               <dt className="text-sm font-medium text-gray-500">단가</dt>
-              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{product.price.toLocaleString()}원</dd>
+              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                {product.price.toLocaleString()}원
+              </dd>
             </div>
             <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
               <dt className="text-sm font-medium text-gray-500">최종 수정일</dt>
@@ -169,7 +198,7 @@ const ProductDetailPage = () => {
           </dl>
         </div>
       </div>
-      
+
       {/* 위치 이력 모달 */}
       {showLocationHistory && (
         <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
@@ -181,18 +210,33 @@ const ProductDetailPage = () => {
                 className="text-gray-400 hover:text-gray-500"
               >
                 <span className="sr-only">닫기</span>
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
             <div className="px-4 py-5 sm:p-6 overflow-y-auto max-h-[60vh]">
               {locationHistory.length === 0 ? (
-                <p className="text-gray-500 text-center py-4">위치 이력이 없습니다.</p>
+                <p className="text-gray-500 text-center py-4">
+                  위치 이력이 없습니다.
+                </p>
               ) : (
                 <ul className="space-y-4">
                   {locationHistory.map((history) => (
-                    <li key={history.id} className="border-l-2 border-kyobo pl-4 py-2">
+                    <li
+                      key={history.id}
+                      className="border-l-2 border-kyobo pl-4 py-2"
+                    >
                       <div className="flex justify-between">
                         <div>
                           <p className="text-sm font-medium text-gray-900">

@@ -25,16 +25,16 @@ export const sendLowStockAlert = async (
   productName: string,
   sku: string,
   currentQuantity: number,
-  safetyStock: number
+  safetyStock: number,
 ) => {
   try {
     const adminEmail = process.env.ADMIN_EMAIL;
-    
+
     if (!adminEmail) {
       console.error('관리자 이메일이 설정되지 않았습니다.');
       return;
     }
-    
+
     const mailOptions = {
       from: process.env.SMTP_USER,
       to: adminEmail,
@@ -64,7 +64,7 @@ export const sendLowStockAlert = async (
         <p>감사합니다.<br>교보문고 핫트랙스 송도점 재고관리 시스템</p>
       `,
     };
-    
+
     await transporter.sendMail(mailOptions);
     console.log(`저재고 알림 이메일이 ${adminEmail}로 전송되었습니다.`);
   } catch (error) {

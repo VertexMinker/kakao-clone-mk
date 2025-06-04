@@ -18,9 +18,11 @@ const BarcodeScannerPage = () => {
     const getDevices = async () => {
       try {
         const devices = await navigator.mediaDevices.enumerateDevices();
-        const videoDevs = devices.filter(device => device.kind === 'videoinput');
+        const videoDevs = devices.filter(
+          (device) => device.kind === 'videoinput',
+        );
         setVideoDevices(videoDevs);
-        
+
         if (videoDevs.length > 0) {
           setSelectedDeviceId(videoDevs[0].deviceId);
         }
@@ -29,14 +31,14 @@ const BarcodeScannerPage = () => {
         setPermissionDenied(true);
       }
     };
-    
+
     getDevices();
   }, []);
 
   // 스캐너 초기화
   useEffect(() => {
     if (!selectedDeviceId) return;
-    
+
     const initScanner = async () => {
       try {
         const newScanner = new BarcodeScanner();
@@ -50,9 +52,9 @@ const BarcodeScannerPage = () => {
         });
       }
     };
-    
+
     initScanner();
-    
+
     return () => {
       if (scanner) {
         scanner.stop();
@@ -63,17 +65,19 @@ const BarcodeScannerPage = () => {
   // 스캔 시작
   const startScanning = async () => {
     if (!scanner || !selectedDeviceId) return;
-    
+
     try {
       setScanning(true);
-      
-      const videoElement = document.getElementById('scanner-preview') as HTMLVideoElement;
+
+      const videoElement = document.getElementById(
+        'scanner-preview',
+      ) as HTMLVideoElement;
       if (!videoElement) return;
-      
+
       await scanner.start(
         { deviceId: { exact: selectedDeviceId } },
         videoElement,
-        result => handleScanResult(result.getText())
+        (result) => handleScanResult(result.getText()),
       );
     } catch (error) {
       console.error('스캔 시작 오류:', error);
@@ -98,16 +102,16 @@ const BarcodeScannerPage = () => {
   // 스캔 결과 처리
   const handleScanResult = (code: string) => {
     stopScanning();
-    
+
     // SKU 형식 검증 (예: 알파벳+숫자 조합)
     const isValidSku = /^[A-Za-z0-9-]+$/.test(code);
-    
+
     if (isValidSku) {
       toast({
         title: '바코드 스캔 성공',
         description: `SKU: ${code}`,
       });
-      
+
       // 제품 검색 페이지로 이동
       navigate(`/products?search=${code}`);
     } else {
@@ -116,7 +120,7 @@ const BarcodeScannerPage = () => {
         description: '인식된 바코드가 유효한 SKU 형식이 아닙니다.',
         variant: 'destructive',
       });
-      
+
       // 스캔 재시작
       startScanning();
     }
@@ -133,14 +137,14 @@ const BarcodeScannerPage = () => {
         </button>
         <h1 className="text-2xl font-bold text-gray-900">바코드/QR 스캔</h1>
       </div>
-      
+
       <div className="bg-white shadow overflow-hidden rounded-lg">
         <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
           <div className="flex items-center">
             <QrCode className="h-5 w-5 mr-2 text-kyobo" />
             <h2 className="text-lg font-medium text-gray-900">스캐너</h2>
           </div>
-          
+
           {videoDevices.length > 0 && (
             <select
               value={selectedDeviceId}
@@ -159,7 +163,7 @@ const BarcodeScannerPage = () => {
             </select>
           )}
         </div>
-        
+
         <div className="border-t border-gray-200 p-4">
           {permissionDenied ? (
             <div className="rounded-md bg-red-50 p-4">
@@ -168,11 +172,11 @@ const BarcodeScannerPage = () => {
                   <AlertTriangle className="h-5 w-5 text-red-400" />
                 </div>
                 <div className="ml-3">
-                  <h3 className="text-sm font-medium text-red-800">카메라 접근 권한 없음</h3>
+                  <h3 className="text-sm font-medium text-red-800">
+                    카메라 접근 권한 없음
+                  </h3>
                   <div className="mt-2 text-sm text-red-700">
-                    <p>
-                      브라우저 설정에서 카메라 접근 권한을 허용해주세요.
-                    </p>
+                    <p>브라우저 설정에서 카메라 접근 권한을 허용해주세요.</p>
                   </div>
                 </div>
               </div>
@@ -184,10 +188,13 @@ const BarcodeScannerPage = () => {
                   <AlertTriangle className="h-5 w-5 text-yellow-400" />
                 </div>
                 <div className="ml-3">
-                  <h3 className="text-sm font-medium text-yellow-800">카메라를 찾을 수 없음</h3>
+                  <h3 className="text-sm font-medium text-yellow-800">
+                    카메라를 찾을 수 없음
+                  </h3>
                   <div className="mt-2 text-sm text-yellow-700">
                     <p>
-                      사용 가능한 카메라가 없습니다. 카메라가 연결되어 있는지 확인해주세요.
+                      사용 가능한 카메라가 없습니다. 카메라가 연결되어 있는지
+                      확인해주세요.
                     </p>
                   </div>
                 </div>
@@ -206,7 +213,7 @@ const BarcodeScannerPage = () => {
                   </div>
                 )}
               </div>
-              
+
               <div className="flex justify-center">
                 {!scanning ? (
                   <button
@@ -225,7 +232,7 @@ const BarcodeScannerPage = () => {
                   </button>
                 )}
               </div>
-              
+
               <div className="text-center text-sm text-gray-500">
                 <p>제품의 바코드 또는 QR 코드를 카메라에 비춰주세요.</p>
                 <p>코드가 인식되면 자동으로 해당 제품 페이지로 이동합니다.</p>

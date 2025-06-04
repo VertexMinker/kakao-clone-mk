@@ -37,13 +37,13 @@ export const login = async (req: Request, res: Response) => {
     const accessToken = jwt.sign(
       { userId: user.id, role: user.role },
       process.env.JWT_SECRET || 'fallback-secret-key',
-      { expiresIn: process.env.JWT_EXPIRES_IN || '1h' }
+      { expiresIn: process.env.JWT_EXPIRES_IN || '1h' },
     );
 
     const refreshToken = jwt.sign(
       { userId: user.id },
       process.env.JWT_REFRESH_SECRET || 'fallback-refresh-secret-key',
-      { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d' }
+      { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d' },
     );
 
     return res.status(200).json({
@@ -81,7 +81,7 @@ export const refreshToken = async (req: Request, res: Response) => {
 
     const decoded = jwt.verify(
       refreshToken,
-      process.env.JWT_REFRESH_SECRET || 'fallback-refresh-secret-key'
+      process.env.JWT_REFRESH_SECRET || 'fallback-refresh-secret-key',
     ) as { userId: string };
 
     const user = await prisma.user.findUnique({
@@ -98,7 +98,7 @@ export const refreshToken = async (req: Request, res: Response) => {
     const accessToken = jwt.sign(
       { userId: user.id, role: user.role },
       process.env.JWT_SECRET || 'fallback-secret-key',
-      { expiresIn: process.env.JWT_EXPIRES_IN || '1h' }
+      { expiresIn: process.env.JWT_EXPIRES_IN || '1h' },
     );
 
     return res.status(200).json({

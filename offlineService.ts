@@ -16,14 +16,20 @@ const DB_VERSION = 1;
 export const initDB = async () => {
   return openDB<InventoryDB>(DB_NAME, DB_VERSION, {
     upgrade(db) {
-      const offlineStore = db.createObjectStore('offlineActions', { keyPath: 'id' });
+      const offlineStore = db.createObjectStore('offlineActions', {
+        keyPath: 'id',
+      });
       offlineStore.createIndex('by-synced', 'synced');
     },
   });
 };
 
 export const offlineService = {
-  async queueInventoryAdjustment(productId: string, quantity: number, memo?: string): Promise<string> {
+  async queueInventoryAdjustment(
+    productId: string,
+    quantity: number,
+    memo?: string,
+  ): Promise<string> {
     const db = await initDB();
     const action: OfflineAction = {
       id: uuidv4(),
@@ -32,12 +38,15 @@ export const offlineService = {
       timestamp: Date.now(),
       synced: false,
     };
-    
+
     await db.add('offlineActions', action);
     return action.id;
   },
-  
-  async queueLocationMove(productId: string, toLocation: string): Promise<string> {
+
+  async queueLocationMove(
+    productId: string,
+    toLocation: string,
+  ): Promise<string> {
     const db = await initDB();
     const action: OfflineAction = {
       id: uuidv4(),
@@ -46,16 +55,16 @@ export const offlineService = {
       timestamp: Date.now(),
       synced: false,
     };
-    
+
     await db.add('offlineActions', action);
     return action.id;
   },
-  
+
   async getPendingActions(): Promise<OfflineAction[]> {
     const db = await initDB();
     return db.getAllFromIndex('offlineActions', 'by-synced', false);
   },
-  
+
   async markActionSynced(id: string): Promise<void> {
     const db = await initDB();
     const action = await db.get('offlineActions', id);
@@ -64,11 +73,15 @@ export const offlineService = {
       await db.put('offlineActions', action);
     }
   },
-  
+
   async clearSyncedActions(): Promise<void> {
     const db = await initDB();
-    const syncedActions = await db.getAllFromIndex('offlineActions', 'by-synced', true);
-    
+    const syncedActions = await db.getAllFromIndex(
+      'offlineActions',
+      'by-synced',
+      true,
+    );
+
     const tx = db.transaction('offlineActions', 'readwrite');
     for (const action of syncedActions) {
       await tx.store.delete(action.id);

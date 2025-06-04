@@ -11,7 +11,11 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { register, handleSubmit, formState: { errors } } = useForm<LoginCredentials>();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginCredentials>();
 
   const onSubmit = async (data: LoginCredentials) => {
     try {
@@ -52,16 +56,18 @@ const LoginPage = () => {
                 autoComplete="email"
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-kyobo focus:border-kyobo focus:z-10 sm:text-sm"
                 placeholder="이메일"
-                {...register('email', { 
+                {...register('email', {
                   required: '이메일을 입력해주세요',
                   pattern: {
                     value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
                     message: '유효한 이메일 주소를 입력해주세요',
-                  }
+                  },
                 })}
               />
               {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.email.message}
+                </p>
               )}
             </div>
             <div className="relative">
@@ -74,7 +80,9 @@ const LoginPage = () => {
                 autoComplete="current-password"
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-kyobo focus:border-kyobo focus:z-10 sm:text-sm"
                 placeholder="비밀번호"
-                {...register('password', { required: '비밀번호를 입력해주세요' })}
+                {...register('password', {
+                  required: '비밀번호를 입력해주세요',
+                })}
               />
               <button
                 type="button"
@@ -88,7 +96,9 @@ const LoginPage = () => {
                 )}
               </button>
               {errors.password && (
-                <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.password.message}
+                </p>
               )}
             </div>
           </div>
