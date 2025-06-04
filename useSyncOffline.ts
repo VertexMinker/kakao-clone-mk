@@ -36,18 +36,22 @@ export const useSyncOffline = () => {
 
       // 서버에 동기화 요청
       const response = await apiClient.post('/sync', {
-        actions: pendingActions.map(action => ({
+        actions: pendingActions.map((action) => ({
           type: action.type,
           data: action.data,
-          timestamp: action.timestamp
-        }))
+          timestamp: action.timestamp,
+        })),
       });
 
       const { successCount, errorCount, results, errors } = response.data.data;
 
       // 성공한 작업 처리
       for (const result of results) {
-        const action = pendingActions.find(a => a.type === result.type && a.data.productId === result.data.product.id);
+        const action = pendingActions.find(
+          (a) =>
+            a.type === result.type &&
+            a.data.productId === result.data.product.id,
+        );
         if (action && result.success) {
           await offlineService.markActionSynced(action.id);
         }
@@ -89,6 +93,6 @@ export const useSyncOffline = () => {
   return {
     isOnline,
     isSyncing,
-    syncOfflineActions
+    syncOfflineActions,
   };
 };

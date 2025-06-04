@@ -8,7 +8,7 @@ export const errorHandler = (
   err: AppError,
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   const statusCode = err.statusCode || 500;
   const message = err.message || '서버 오류가 발생했습니다.';

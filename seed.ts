@@ -179,7 +179,7 @@ async function main() {
     const product = await prisma.product.findUnique({
       where: { sku: adjustment.productSku },
     });
-    
+
     const user = await prisma.user.findUnique({
       where: { email: adjustment.userEmail },
     });
@@ -218,7 +218,7 @@ async function main() {
     const product = await prisma.product.findUnique({
       where: { sku: change.productSku },
     });
-    
+
     const user = await prisma.user.findUnique({
       where: { email: change.userEmail },
     });

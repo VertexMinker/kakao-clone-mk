@@ -9,7 +9,7 @@ import {
   adjustInventory,
   moveProductLocation,
   getLocationHistory,
-  exportProducts
+  exportProducts,
 } from '../controllers/product.controller';
 import { bulkUploadProducts } from '../controllers/upload.controller';
 import multer from 'multer';
@@ -33,6 +33,12 @@ router.post('/:id/adjust', authenticate, adjustInventory);
 router.post('/:id/move', authenticate, moveProductLocation);
 
 // 대량 업로드
-router.post('/bulk-upload', authenticate, authorizeAdmin, upload.single('file'), bulkUploadProducts);
+router.post(
+  '/bulk-upload',
+  authenticate,
+  authorizeAdmin,
+  upload.single('file'),
+  bulkUploadProducts,
+);
 
 export default router;

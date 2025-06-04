@@ -14,12 +14,16 @@ const ProductBulkUploadPage = () => {
     errorCount: number;
     errors?: string[];
   } | null>(null);
-  
-  const { register, handleSubmit, formState: { errors } } = useForm();
-  
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
+
   const onSubmit = async (data: any) => {
     if (!data.file || data.file.length === 0) return;
-    
+
     const file = data.file[0];
     if (file.type !== 'text/csv' && !file.name.endsWith('.csv')) {
       toast({
@@ -29,13 +33,13 @@ const ProductBulkUploadPage = () => {
       });
       return;
     }
-    
+
     setIsUploading(true);
-    
+
     try {
       const result = await productService.bulkUpload(file);
       setUploadResult(result);
-      
+
       toast({
         title: '업로드 완료',
         description: `성공: ${result.successCount}건, 실패: ${result.errorCount}건`,
@@ -52,7 +56,7 @@ const ProductBulkUploadPage = () => {
       setIsUploading(false);
     }
   };
-  
+
   return (
     <div className="container mx-auto px-4">
       <div className="flex items-center mb-6">
@@ -64,13 +68,13 @@ const ProductBulkUploadPage = () => {
         </button>
         <h1 className="text-2xl font-bold text-gray-900">대량 업로드</h1>
       </div>
-      
+
       <div className="bg-white shadow overflow-hidden rounded-lg">
         <div className="px-4 py-5 sm:px-6 flex items-center">
           <FileUp className="h-5 w-5 mr-2 text-kyobo" />
           <h2 className="text-lg font-medium text-gray-900">CSV 파일 업로드</h2>
         </div>
-        
+
         <div className="border-t border-gray-200 px-4 py-5 sm:p-6">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div>
@@ -91,7 +95,9 @@ const ProductBulkUploadPage = () => {
                         type="file"
                         className="sr-only"
                         accept=".csv"
-                        {...register('file', { required: '파일을 선택해주세요' })}
+                        {...register('file', {
+                          required: '파일을 선택해주세요',
+                        })}
                       />
                     </label>
                     <p className="pl-1">또는 여기에 파일을 끌어다 놓으세요</p>
@@ -102,12 +108,16 @@ const ProductBulkUploadPage = () => {
                 </div>
               </div>
               {errors.file && (
-                <p className="mt-1 text-sm text-red-600">{errors.file.message as string}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.file.message as string}
+                </p>
               )}
             </div>
-            
+
             <div className="bg-gray-50 p-4 rounded-md">
-              <h3 className="text-sm font-medium text-gray-900">CSV 파일 형식</h3>
+              <h3 className="text-sm font-medium text-gray-900">
+                CSV 파일 형식
+              </h3>
               <div className="mt-2 text-sm text-gray-500">
                 <p>다음 열을 포함해야 합니다:</p>
                 <ul className="list-disc pl-5 mt-1 space-y-1">
@@ -131,7 +141,7 @@ const ProductBulkUploadPage = () => {
                 </p>
               </div>
             </div>
-            
+
             <div className="flex justify-end">
               <button
                 type="button"
@@ -149,11 +159,13 @@ const ProductBulkUploadPage = () => {
               </button>
             </div>
           </form>
-          
+
           {uploadResult && (
-            <div className={`mt-6 rounded-md p-4 ${
-              uploadResult.errorCount > 0 ? 'bg-red-50' : 'bg-green-50'
-            }`}>
+            <div
+              className={`mt-6 rounded-md p-4 ${
+                uploadResult.errorCount > 0 ? 'bg-red-50' : 'bg-green-50'
+              }`}
+            >
               <div className="flex">
                 <div className="flex-shrink-0">
                   {uploadResult.errorCount > 0 ? (
@@ -163,17 +175,25 @@ const ProductBulkUploadPage = () => {
                   )}
                 </div>
                 <div className="ml-3">
-                  <h3 className={`text-sm font-medium ${
-                    uploadResult.errorCount > 0 ? 'text-red-800' : 'text-green-800'
-                  }`}>
+                  <h3
+                    className={`text-sm font-medium ${
+                      uploadResult.errorCount > 0
+                        ? 'text-red-800'
+                        : 'text-green-800'
+                    }`}
+                  >
                     업로드 결과
                   </h3>
-                  <div className={`mt-2 text-sm ${
-                    uploadResult.errorCount > 0 ? 'text-red-700' : 'text-green-700'
-                  }`}>
+                  <div
+                    className={`mt-2 text-sm ${
+                      uploadResult.errorCount > 0
+                        ? 'text-red-700'
+                        : 'text-green-700'
+                    }`}
+                  >
                     <p>성공: {uploadResult.successCount}건</p>
                     <p>실패: {uploadResult.errorCount}건</p>
-                    
+
                     {uploadResult.errors && uploadResult.errors.length > 0 && (
                       <div className="mt-2">
                         <p className="font-medium">오류 내역:</p>
