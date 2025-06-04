@@ -1,0 +1,70 @@
+### 🔧 Kyobo Hottracks 송도점 재고 관리 웹앱 프롬프트 (v4‑lite‑loc)
+
+_이 프롬프트를 ChatGPT o3 등에 입력하면, 위치 변경/이력 기능이 포함된 송도점 단독 재고 관리 웹앱의 전체 소스 코드(React 18 + Express + PostgreSQL)와 README를 얻을 수 있습니다._
+
+---
+
+#### 1) 역할(Role)
+교보문고 핫트랙스 **송도점** 재고 관리 툴을 개발하는 **시니어 풀스택**입니다.  
+- **FE** : React 18 + Vite (TypeScript)  
+- **BE** : Node.js 18 + Express (TypeScript)  
+- **DB** : PostgreSQL 15 (Prisma ORM)  
+- **스타일** : Tailwind CSS + shadcn/ui  
+- **Auth** : JWT(Access+Refresh) · 역할 `admin`, `staff`
+
+---
+
+#### 2) 필수 기능
+
+| 카테고리 | 요구 사항 |
+|----------|-----------|
+| **품목 CRUD** | 상품명·SKU·카테고리·브랜드·**보관 위치**·수량·안전재고·단가·최종 수정일 |
+| **입/출고** | ±delta + 메모 → `history` 저장 |
+| **위치 변경** | 📦 이동 버튼 → 새 위치 입력 → `location` 갱신 & `locationHistory`(`from`,`to`,`user`,`movedAt`) 기록 |
+| **위치 이력 보기** | 테이블 행에서 ‘이력’ 클릭 시 모달에 이동 연대기 표시 |
+| **대량 업/다운로드** | Excel/CSV 업로드 & 조건부 CSV 내보내기 |
+| **바코드/QR** | 모바일 카메라(ZXing JS)로 SKU 입력 |
+| **검색/필터** | 검색(상품명·SKU) + 카테고리/브랜드 + **현재 위치 드롭다운** + 저재고 토글 |
+| **저재고 알림** | `qty ≤ safety` 발생 시 Admin 이메일(nodemailer) |
+| **PWA 오프라인** | 서비스워커 캐시 + IndexedDB 큐 → 복구 시 동기화 |
+| **역할** | admin: 전권 · staff: 조회/입출고/위치이동 가능(수정·삭제 불가) |
+
+---
+
+#### 3) 주요 API
+
+| METHOD | URL | 설명 |
+|--------|-----|------|
+| POST   | /api/auth/login           | 로그인 |
+| POST   | /api/auth/refresh         | 토큰 재발급 |
+| GET    | /api/products             | 검색·필터 |
+| POST   | /api/products             | 신규 |
+| PUT    | /api/products/:id         | 수정 |
+| DELETE | /api/products/:id         | 삭제 |
+| POST   | /api/products/:id/adjust  | 입/출고 |
+| POST   | /api/products/:id/move    | **위치 변경** |
+| GET    | /api/products/export      | CSV 다운로드 |
+| POST   | /api/products/bulk-upload | Excel/CSV 업로드 |
+
+---
+
+#### 4) 출력 요구
+
+- `frontend/` , `backend/` 디렉터리별 **파일 단위 코드블록**  
+- `locationHistory` 모델·마이그레이션 포함  
+- 위치 이동 모달, 이력 모달 컴포넌트 예시 코드  
+- README: 설치(`docker‑compose up`) → 실행 → 위치 변경 시나리오 설명 & 스크린샷(더미 URL)  
+- Jest unit 1개(위치 이동 서비스), Cypress 1개(위치 이동 UI) 예시
+
+---
+
+#### 5) 지침
+
+- Strict TypeScript, Prisma migrate 자동.  
+- 프론트는 TanStack Query로 API 바인딩.  
+- 오프라인 큐: 위치 변경·입출고 모두 큐에 저장.  
+- 코드가 길어도 **파일별 코드블록**으로 나눠서 출력.  
+
+---
+
+_위 요구사항을 **완전히 충족**하는 전체 소스 코드와 README를 작성해 주세요._
