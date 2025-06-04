@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { productService } from '../services/productService';
+import { productService } from '../server/services/productService';
 import { useToast } from '../components/ui/use-toast';
 import { ArrowLeft, Upload, FileUp, AlertTriangle } from 'lucide-react';
 

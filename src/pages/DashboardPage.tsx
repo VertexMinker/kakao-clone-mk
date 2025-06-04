@@ -11,7 +11,7 @@ import {
   TrendingDown,
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { productService } from '../services/productService';
+import { productService } from '../server/services/productService';
 
 const DashboardPage = () => {
   const navigate = useNavigate();
