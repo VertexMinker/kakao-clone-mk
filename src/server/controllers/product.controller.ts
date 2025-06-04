@@ -12,7 +12,7 @@ import {
   moveProductLocation as moveProductLocationService, // Alias to avoid name collision
   getLocationHistoryService,
   getProductsForExportService,
-} from '../services/product.service';
+} from '../services/productService';
 
 export const getAllProducts = async (req: Request, res: Response) => {
   try {
@@ -53,7 +53,7 @@ export const getProductById = async (req: Request, res: Response) => {
     if (error.message === 'Product not found') {
       return res.status(404).json({
         status: 'error',
-        message: '제품을 찾을 수 없습니다.'
+        message: '제품을 찾을 수 없습니다.',
       });
     }
     console.error('제품 상세 조회 오류:', error);
@@ -73,15 +73,23 @@ const createProductSchema = z.object({
   location: z.string().min(1, { message: 'Location is required' }),
   quantity: z.preprocess(
     (val) => parseInt(String(val), 10),
-    z.number({ invalid_type_error: 'Quantity must be a number' }).int().min(0, { message: 'Quantity must be a non-negative integer' })
+    z
+      .number({ invalid_type_error: 'Quantity must be a number' })
+      .int()
+      .min(0, { message: 'Quantity must be a non-negative integer' }),
   ),
   safetyStock: z.preprocess(
     (val) => parseInt(String(val), 10),
-    z.number({ invalid_type_error: 'Safety stock must be a number' }).int().min(0, { message: 'Safety stock must be a non-negative integer' })
+    z
+      .number({ invalid_type_error: 'Safety stock must be a number' })
+      .int()
+      .min(0, { message: 'Safety stock must be a non-negative integer' }),
   ),
   price: z.preprocess(
     (val) => parseFloat(String(val)),
-    z.number({ invalid_type_error: 'Price must be a number' }).positive({ message: 'Price must be a positive number' })
+    z
+      .number({ invalid_type_error: 'Price must be a number' })
+      .positive({ message: 'Price must be a positive number' }),
   ),
 });
 
@@ -106,7 +114,8 @@ export const createProduct = async (req: Request, res: Response) => {
     });
   } catch (error: any) {
     if (error.message === 'SKU already exists') {
-      return res.status(400).json({ // 409 Conflict could also be appropriate
+      return res.status(400).json({
+        // 409 Conflict could also be appropriate
         status: 'error',
         message: '이미 존재하는 SKU입니다.',
       });
@@ -121,21 +130,53 @@ export const createProduct = async (req: Request, res: Response) => {
 
 // Zod schema for updating a product
 const updateProductSchema = z.object({
-  name: z.string().min(1, { message: 'Name cannot be empty if provided' }).optional(),
-  category: z.string().min(1, { message: 'Category cannot be empty if provided' }).optional(),
-  brand: z.string().min(1, { message: 'Brand cannot be empty if provided' }).optional(),
-  location: z.string().min(1, { message: 'Location cannot be empty if provided' }).optional(),
+  name: z
+    .string()
+    .min(1, { message: 'Name cannot be empty if provided' })
+    .optional(),
+  category: z
+    .string()
+    .min(1, { message: 'Category cannot be empty if provided' })
+    .optional(),
+  brand: z
+    .string()
+    .min(1, { message: 'Brand cannot be empty if provided' })
+    .optional(),
+  location: z
+    .string()
+    .min(1, { message: 'Location cannot be empty if provided' })
+    .optional(),
   quantity: z.preprocess(
-    (val) => (val === undefined || val === null || String(val).trim() === '') ? undefined : parseInt(String(val), 10),
-    z.number({ invalid_type_error: 'Quantity must be a number' }).int().min(0, { message: 'Quantity must be a non-negative integer' }).optional()
+    (val) =>
+      val === undefined || val === null || String(val).trim() === ''
+        ? undefined
+        : parseInt(String(val), 10),
+    z
+      .number({ invalid_type_error: 'Quantity must be a number' })
+      .int()
+      .min(0, { message: 'Quantity must be a non-negative integer' })
+      .optional(),
   ),
   safetyStock: z.preprocess(
-    (val) => (val === undefined || val === null || String(val).trim() === '') ? undefined : parseInt(String(val), 10),
-    z.number({ invalid_type_error: 'Safety stock must be a number' }).int().min(0, { message: 'Safety stock must be a non-negative integer' }).optional()
+    (val) =>
+      val === undefined || val === null || String(val).trim() === ''
+        ? undefined
+        : parseInt(String(val), 10),
+    z
+      .number({ invalid_type_error: 'Safety stock must be a number' })
+      .int()
+      .min(0, { message: 'Safety stock must be a non-negative integer' })
+      .optional(),
   ),
   price: z.preprocess(
-    (val) => (val === undefined || val === null || String(val).trim() === '') ? undefined : parseFloat(String(val)),
-    z.number({ invalid_type_error: 'Price must be a number' }).positive({ message: 'Price must be a positive number' }).optional()
+    (val) =>
+      val === undefined || val === null || String(val).trim() === ''
+        ? undefined
+        : parseFloat(String(val)),
+    z
+      .number({ invalid_type_error: 'Price must be a number' })
+      .positive({ message: 'Price must be a positive number' })
+      .optional(),
   ),
 });
 
@@ -155,7 +196,10 @@ export const updateProduct = async (req: Request, res: Response) => {
     const updateData = result.data;
 
     if (Object.keys(updateData).length === 0) {
-        return res.status(400).json({ status: 'error', message: 'No valid fields provided for update.' });
+      return res.status(400).json({
+        status: 'error',
+        message: 'No valid fields provided for update.',
+      });
     }
 
     const updatedProduct = await updateProductService(id, updateData);
@@ -181,7 +225,9 @@ export const updateProduct = async (req: Request, res: Response) => {
 
 export const deleteProduct = async (req: Request, res: Response) => {
   try {
-    const paramsSchema = z.object({ id: z.string().uuid({ message: "Invalid product ID format" }) });
+    const paramsSchema = z.object({
+      id: z.string().uuid({ message: 'Invalid product ID format' }),
+    });
     const paramsResult = paramsSchema.safeParse(req.params);
 
     if (!paramsResult.success) {
@@ -221,7 +267,12 @@ const adjustInventoryParamsSchema = z.object({
 const adjustInventoryBodySchema = z.object({
   quantity: z.preprocess(
     (val) => parseInt(String(val), 10),
-    z.number({ required_error: 'Quantity is required', invalid_type_error: 'Quantity must be a number' }).int({ message: 'Quantity must be an integer' })
+    z
+      .number({
+        required_error: 'Quantity is required',
+        invalid_type_error: 'Quantity must be a number',
+      })
+      .int({ message: 'Quantity must be an integer' }),
   ),
   memo: z.string().optional(),
 });
@@ -247,7 +298,7 @@ export const adjustInventory = async (req: Request, res: Response) => {
       });
     }
     const { quantity: adjustmentQuantity, memo } = bodyResult.data;
-    
+
     const userId = req.user?.id;
     if (!userId) {
       return res.status(401).json({
@@ -256,7 +307,12 @@ export const adjustInventory = async (req: Request, res: Response) => {
       });
     }
 
-    const result = await adjustInventoryService(productId, userId, adjustmentQuantity, memo);
+    const result = await adjustInventoryService(
+      productId,
+      userId,
+      adjustmentQuantity,
+      memo,
+    );
 
     return res.status(200).json({
       status: 'success',
@@ -321,8 +377,12 @@ export const moveProductLocation = async (req: Request, res: Response) => {
         message: '인증이 필요합니다.',
       });
     }
-    
-    const result = await moveProductLocationService(productId, userId, toLocation);
+
+    const result = await moveProductLocationService(
+      productId,
+      userId,
+      toLocation,
+    );
 
     return res.status(200).json({
       status: 'success',

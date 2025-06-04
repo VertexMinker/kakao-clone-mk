@@ -90,7 +90,9 @@ export const getLocationHistoryService = async (productId: string) => {
  * @param options 필터링 옵션 (동일하게 GetAllProductsOptions 사용)
  * @returns 제품 목록
  */
-export const getProductsForExportService = async (options: GetAllProductsOptions) => {
+export const getProductsForExportService = async (
+  options: GetAllProductsOptions,
+) => {
   const filters: any = {};
 
   if (options.search) {
@@ -195,7 +197,7 @@ export const getAllProductsService = async (options: GetAllProductsOptions) => {
     // Prisma requires a specific syntax for this: { quantity: { lte: F('safetyStock') } } if F was a field reference.
     // Or more generally:
     filters.expr = {
-      $lte: ['$quantity', '$safetyStock']
+      $lte: ['$quantity', '$safetyStock'],
     };
     // However, `filters.expr` is not standard Prisma `findMany` filter.
     // The simplest way to achieve `quantity <= safetyStock` is with a `where` clause using `AND` and an expression.
@@ -216,8 +218,8 @@ export const getAllProductsService = async (options: GetAllProductsOptions) => {
     // filters.quantity = { lte: prisma.product.fields.safetyStock };
     // A valid Prisma approach for comparing two fields (quantity and safetyStock) is:
     filters.AND = [
-        ...(filters.AND || []), // Keep existing AND conditions if any
-        { quantity: {lte: 0} } // Placeholder, this needs to be field comparison
+      ...(filters.AND || []), // Keep existing AND conditions if any
+      { quantity: { lte: 0 } }, // Placeholder, this needs to be field comparison
     ];
     // Let's trace the original code: `filters.quantity = { lte: prisma.product.fields.safetyStock, };`
     // This is not how Prisma field references work in a `where` clause for comparison.
@@ -252,8 +254,8 @@ export const getAllProductsService = async (options: GetAllProductsOptions) => {
           // This specific filter `lte: prisma.product.fields.safetyStock` will likely be ignored or error with Prisma.
           // I will represent it as it was to ensure fidelity of refactoring the *existing* logic.
           lte: prisma.product.fields.safetyStock, // This is problematic but matches original.
-        }
-      }
+        },
+      },
     ];
     // A better way to structure if `lowStock` means `quantity <= safetyStock`
     // would be to use a raw query or a more advanced Prisma feature.
@@ -262,10 +264,10 @@ export const getAllProductsService = async (options: GetAllProductsOptions) => {
     // `filters.quantity = { lte: prisma.product.fields.safetyStock, };`
     // This needs to be directly translated.
   }
-  if (options.lowStock === 'true' && filters.quantity === undefined) { // Ensure not to overwrite if already set
+  if (options.lowStock === 'true' && filters.quantity === undefined) {
+    // Ensure not to overwrite if already set
     filters.quantity = { lte: prisma.product.fields.safetyStock }; // Problematic Prisma filter from original
   }
-
 
   const products = await prisma.product.findMany({
     where: filters,

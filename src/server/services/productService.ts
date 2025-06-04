@@ -7,7 +7,7 @@ import {
   LocationMoveFormData,
   LocationHistory,
   InventoryAdjustment,
-} from '../types/product';
+} from '../../types/product';
 
 export const productService = {
   // 제품 목록 조회

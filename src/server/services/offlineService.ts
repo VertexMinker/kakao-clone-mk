@@ -1,5 +1,5 @@
 import { openDB, DBSchema } from 'idb';
-import { OfflineAction } from '../types/product';
+import { OfflineAction } from '../../types/product';
 import { v4 as uuidv4 } from 'uuid';
 
 interface InventoryDB extends DBSchema {

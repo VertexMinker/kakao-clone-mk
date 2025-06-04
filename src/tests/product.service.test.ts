@@ -9,12 +9,12 @@ import {
   getAllProductsService,
   GetAllProductsOptions, // Assuming this is exported or defined if needed by tests
   adjustInventory,
-} from '../services/product.service';
-import { prisma } from '../index';
-import { sendLowStockAlert } from '../utils/email';
+} from '../server/services/productService';
+import { prisma } from '../server/index';
+import { sendLowStockAlert } from '../server/utils/email';
 
 // Mock Prisma client
-jest.mock('../index', () => ({
+jest.mock('../server/index', () => ({
   prisma: {
     product: {
       findUnique: jest.fn(),
@@ -50,8 +50,9 @@ jest.mock('../index', () => ({
           // These would come from `prisma.product.update.mockResolvedValue(...)` etc.
           // This mock needs to be configured per test or be more dynamic.
           // For now, let's make it return what the individual mocks would return.
-          if (op && typeof op.then === 'function') { // Check if it's a thenable (like a Prisma promise)
-             results.push(await op); // This won't work directly as 'op' is not a function to call.
+          if (op && typeof op.then === 'function') {
+            // Check if it's a thenable (like a Prisma promise)
+            results.push(await op); // This won't work directly as 'op' is not a function to call.
           } else {
             // This part is tricky. The actual Prisma operations are not invoked here.
             // The mock for $transaction needs to be aware of what it's supposed to return.
@@ -65,10 +66,12 @@ jest.mock('../index', () => ({
         // For now, this is a placeholder.
         // return results;
         // A more robust generic mock:
-        return Promise.all(args.map(prismaCall => Promise.resolve(prismaCall))); // This is still not quite right.
-                                                                              // The `args` are promise *factories*, not promises themselves.
-                                                                              // A truly generic mock is hard.
-                                                                              // Let's make it configurable or specific per test.
+        return Promise.all(
+          args.map((prismaCall) => Promise.resolve(prismaCall)),
+        ); // This is still not quite right.
+        // The `args` are promise *factories*, not promises themselves.
+        // A truly generic mock is hard.
+        // Let's make it configurable or specific per test.
         // For now, this transaction mock will be configured in specific describe blocks if needed.
         // Defaulting to a simple pass-through for array arguments (most common use here).
         return Promise.all(args);
@@ -125,15 +128,22 @@ describe('Product Service', () => {
     beforeEach(() => {
       // Setup mocks specific to moveProductLocation
       (prisma.product.findUnique as jest.Mock).mockResolvedValue(mockProduct);
-      (prisma.product.update as jest.Mock).mockResolvedValue({ ...mockProduct, location: '창고 B-2' });
-      (prisma.locationHistory.create as jest.Mock).mockResolvedValue(mockLocationHistoryEntry);
-      // Configure the $transaction mock to return what moveProductLocation expects
-      (prisma.$transaction as jest.Mock).mockImplementation(async (operations) => {
-        // Simulate the execution of the operations by resolving with their mocked results
-        const updatedProduct = await operations[0]; // Result of prisma.product.update
-        const locationHistory = await operations[1]; // Result of prisma.locationHistory.create
-        return [updatedProduct, locationHistory];
+      (prisma.product.update as jest.Mock).mockResolvedValue({
+        ...mockProduct,
+        location: '창고 B-2',
       });
+      (prisma.locationHistory.create as jest.Mock).mockResolvedValue(
+        mockLocationHistoryEntry,
+      );
+      // Configure the $transaction mock to return what moveProductLocation expects
+      (prisma.$transaction as jest.Mock).mockImplementation(
+        async (operations) => {
+          // Simulate the execution of the operations by resolving with their mocked results
+          const updatedProduct = await operations[0]; // Result of prisma.product.update
+          const locationHistory = await operations[1]; // Result of prisma.locationHistory.create
+          return [updatedProduct, locationHistory];
+        },
+      );
     });
 
     it('제품 위치를 성공적으로 변경해야 함', async () => {
@@ -186,18 +196,26 @@ describe('Product Service', () => {
   describe('getProductByIdService', () => {
     it('should return a product if found', async () => {
       const specificMockProduct = { ...mockProduct, id: 'found-id' };
-      (prisma.product.findUnique as jest.Mock).mockResolvedValue(specificMockProduct);
+      (prisma.product.findUnique as jest.Mock).mockResolvedValue(
+        specificMockProduct,
+      );
 
       const product = await getProductByIdService('found-id');
       expect(product).toEqual(specificMockProduct);
-      expect(prisma.product.findUnique).toHaveBeenCalledWith({ where: { id: 'found-id' } });
+      expect(prisma.product.findUnique).toHaveBeenCalledWith({
+        where: { id: 'found-id' },
+      });
     });
 
     it('should throw an error if product is not found', async () => {
       (prisma.product.findUnique as jest.Mock).mockResolvedValue(null);
 
-      await expect(getProductByIdService('not-found-id')).rejects.toThrow('Product not found');
-      expect(prisma.product.findUnique).toHaveBeenCalledWith({ where: { id: 'not-found-id' } });
+      await expect(getProductByIdService('not-found-id')).rejects.toThrow(
+        'Product not found',
+      );
+      expect(prisma.product.findUnique).toHaveBeenCalledWith({
+        where: { id: 'not-found-id' },
+      });
     });
   });
 
@@ -215,34 +233,57 @@ describe('Product Service', () => {
 
     it('should create and return a new product if SKU does not exist', async () => {
       (prisma.product.findUnique as jest.Mock).mockResolvedValue(null); // SKU check
-      const createdProductMock = { ...newProductData, id: 'newly-created-id', createdAt: new Date(), updatedAt: new Date() };
-      (prisma.product.create as jest.Mock).mockResolvedValue(createdProductMock);
+      const createdProductMock = {
+        ...newProductData,
+        id: 'newly-created-id',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      (prisma.product.create as jest.Mock).mockResolvedValue(
+        createdProductMock,
+      );
 
       const product = await createProductService(newProductData);
       expect(product).toEqual(createdProductMock);
-      expect(prisma.product.findUnique).toHaveBeenCalledWith({ where: { sku: newProductData.sku } });
-      expect(prisma.product.create).toHaveBeenCalledWith({ data: newProductData });
+      expect(prisma.product.findUnique).toHaveBeenCalledWith({
+        where: { sku: newProductData.sku },
+      });
+      expect(prisma.product.create).toHaveBeenCalledWith({
+        data: newProductData,
+      });
     });
 
     it('should throw an error if SKU already exists', async () => {
-      const existingProductWithSKU = { ...mockProduct, sku: newProductData.sku };
-      (prisma.product.findUnique as jest.Mock).mockResolvedValue(existingProductWithSKU); // SKU check
+      const existingProductWithSKU = {
+        ...mockProduct,
+        sku: newProductData.sku,
+      };
+      (prisma.product.findUnique as jest.Mock).mockResolvedValue(
+        existingProductWithSKU,
+      ); // SKU check
 
-      await expect(createProductService(newProductData)).rejects.toThrow('SKU already exists');
-      expect(prisma.product.findUnique).toHaveBeenCalledWith({ where: { sku: newProductData.sku } });
+      await expect(createProductService(newProductData)).rejects.toThrow(
+        'SKU already exists',
+      );
+      expect(prisma.product.findUnique).toHaveBeenCalledWith({
+        where: { sku: newProductData.sku },
+      });
       expect(prisma.product.create).not.toHaveBeenCalled();
     });
   });
 });
 
 // Mock email utility
-jest.mock('../utils/email', () => ({
+jest.mock('../server/utils/email', () => ({
   sendLowStockAlert: jest.fn().mockResolvedValue(undefined),
 }));
 
 describe('getAllProductsService', () => {
   it('should return all products if no filters are provided', async () => {
-    const mockProductsList = [mockProduct, { ...mockProduct, id: 'prod2', sku: 'SKU002' }];
+    const mockProductsList = [
+      mockProduct,
+      { ...mockProduct, id: 'prod2', sku: 'SKU002' },
+    ];
     (prisma.product.findMany as jest.Mock).mockResolvedValue(mockProductsList);
 
     const products = await getAllProductsService({});
@@ -265,7 +306,7 @@ describe('getAllProductsService', () => {
             { sku: { contains: searchTerm, mode: 'insensitive' } },
           ],
         },
-      })
+      }),
     );
   });
 
@@ -276,7 +317,7 @@ describe('getAllProductsService', () => {
     expect(prisma.product.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { category: category },
-      })
+      }),
     );
   });
 
@@ -288,7 +329,7 @@ describe('getAllProductsService', () => {
         where: {
           quantity: { lte: prisma.product.fields.safetyStock }, // Matching the problematic filter
         },
-      })
+      }),
     );
   });
 
@@ -297,7 +338,7 @@ describe('getAllProductsService', () => {
     const category = 'ComboCategory';
     (prisma.product.findMany as jest.Mock).mockResolvedValue([mockProduct]);
     await getAllProductsService({ search: searchTerm, category: category });
-     expect(prisma.product.findMany).toHaveBeenCalledWith(
+    expect(prisma.product.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: {
           OR: [
@@ -306,7 +347,7 @@ describe('getAllProductsService', () => {
           ],
           category: category,
         },
-      })
+      }),
     );
   });
 });
@@ -317,27 +358,55 @@ describe('adjustInventory (service function)', () => {
   const memo = 'Test adjustment';
 
   it('should adjust inventory and return product and adjustment history', async () => {
-    const initialProduct = { ...mockProduct, id: productId, quantity: 10, safetyStock: 5 };
+    const initialProduct = {
+      ...mockProduct,
+      id: productId,
+      quantity: 10,
+      safetyStock: 5,
+    };
     const adjustmentQuantity = 5;
     const expectedNewQuantity = initialProduct.quantity + adjustmentQuantity;
-    const updatedProductData = { ...initialProduct, quantity: expectedNewQuantity };
-    const adjustmentRecord = { id: 'adjHistId', productId, userId, quantity: adjustmentQuantity, memo };
+    const updatedProductData = {
+      ...initialProduct,
+      quantity: expectedNewQuantity,
+    };
+    const adjustmentRecord = {
+      id: 'adjHistId',
+      productId,
+      userId,
+      quantity: adjustmentQuantity,
+      memo,
+    };
 
     (prisma.product.findUnique as jest.Mock).mockResolvedValue(initialProduct);
     (prisma.product.update as jest.Mock).mockResolvedValue(updatedProductData);
-    (prisma.inventoryAdjustment.create as jest.Mock).mockResolvedValue(adjustmentRecord);
-    (prisma.$transaction as jest.Mock).mockImplementation(async (operations) => [
-      await operations[0], // product.update
-      await operations[1], // inventoryAdjustment.create
-    ]);
+    (prisma.inventoryAdjustment.create as jest.Mock).mockResolvedValue(
+      adjustmentRecord,
+    );
+    (prisma.$transaction as jest.Mock).mockImplementation(
+      async (operations) => [
+        await operations[0], // product.update
+        await operations[1], // inventoryAdjustment.create
+      ],
+    );
 
-    const result = await adjustInventory(productId, userId, adjustmentQuantity, memo);
+    const result = await adjustInventory(
+      productId,
+      userId,
+      adjustmentQuantity,
+      memo,
+    );
 
     expect(result.product).toEqual(updatedProductData);
     expect(result.adjustment).toEqual(adjustmentRecord);
-    expect(prisma.product.findUnique).toHaveBeenCalledWith({ where: { id: productId } });
+    expect(prisma.product.findUnique).toHaveBeenCalledWith({
+      where: { id: productId },
+    });
     expect(prisma.$transaction).toHaveBeenCalled();
-    expect(prisma.product.update).toHaveBeenCalledWith({ where: { id: productId }, data: { quantity: expectedNewQuantity } });
+    expect(prisma.product.update).toHaveBeenCalledWith({
+      where: { id: productId },
+      data: { quantity: expectedNewQuantity },
+    });
     expect(prisma.inventoryAdjustment.create).toHaveBeenCalledWith({
       data: { productId, userId, quantity: adjustmentQuantity, memo },
     });
@@ -345,19 +414,35 @@ describe('adjustInventory (service function)', () => {
   });
 
   it('should trigger low stock alert if quantity falls to or below safety stock', async () => {
-    const initialProduct = { ...mockProduct, id: 'lowStockProd', quantity: 10, safetyStock: 10, name: 'Test Low Stock Product', sku: 'TLS001' };
+    const initialProduct = {
+      ...mockProduct,
+      id: 'lowStockProd',
+      quantity: 10,
+      safetyStock: 10,
+      name: 'Test Low Stock Product',
+      sku: 'TLS001',
+    };
     const adjustmentQuantity = -1;
     const expectedNewQuantity = 9;
-    const updatedProductData = { ...initialProduct, quantity: expectedNewQuantity };
-    const adjustmentRecord = { id: 'adjHistId2', productId: 'lowStockProd', userId, quantity: adjustmentQuantity };
+    const updatedProductData = {
+      ...initialProduct,
+      quantity: expectedNewQuantity,
+    };
+    const adjustmentRecord = {
+      id: 'adjHistId2',
+      productId: 'lowStockProd',
+      userId,
+      quantity: adjustmentQuantity,
+    };
 
     (prisma.product.findUnique as jest.Mock).mockResolvedValue(initialProduct);
     (prisma.product.update as jest.Mock).mockResolvedValue(updatedProductData);
-    (prisma.inventoryAdjustment.create as jest.Mock).mockResolvedValue(adjustmentRecord);
-    (prisma.$transaction as jest.Mock).mockImplementation(async (operations) => [
-        await operations[0],
-        await operations[1]
-    ]);
+    (prisma.inventoryAdjustment.create as jest.Mock).mockResolvedValue(
+      adjustmentRecord,
+    );
+    (prisma.$transaction as jest.Mock).mockImplementation(
+      async (operations) => [await operations[0], await operations[1]],
+    );
 
     await adjustInventory('lowStockProd', userId, adjustmentQuantity);
 
@@ -365,19 +450,23 @@ describe('adjustInventory (service function)', () => {
       initialProduct.name,
       initialProduct.sku,
       expectedNewQuantity,
-      initialProduct.safetyStock
+      initialProduct.safetyStock,
     );
   });
 
   it('should throw error if adjustment results in negative stock', async () => {
     const initialProduct = { ...mockProduct, id: 'negStockProd', quantity: 5 };
     (prisma.product.findUnique as jest.Mock).mockResolvedValue(initialProduct);
-    await expect(adjustInventory('negStockProd', userId, -10)).rejects.toThrow('재고가 부족합니다.');
+    await expect(adjustInventory('negStockProd', userId, -10)).rejects.toThrow(
+      '재고가 부족합니다.',
+    );
   });
 
   it('should throw error if product for adjustment is not found', async () => {
     (prisma.product.findUnique as jest.Mock).mockResolvedValue(null);
-    await expect(adjustInventory('non-exist-adj', userId, 5)).rejects.toThrow('제품을 찾을 수 없습니다.');
+    await expect(adjustInventory('non-exist-adj', userId, 5)).rejects.toThrow(
+      '제품을 찾을 수 없습니다.',
+    );
   });
 });
 
@@ -391,12 +480,18 @@ describe('updateProductService', () => {
   it('should update and return the product if found', async () => {
     const existingProduct = { ...mockProduct, id: productIdToUpdate };
     (prisma.product.findUnique as jest.Mock).mockResolvedValue(existingProduct);
-    const updatedProductMock = { ...existingProduct, ...updateData, updatedAt: new Date() };
+    const updatedProductMock = {
+      ...existingProduct,
+      ...updateData,
+      updatedAt: new Date(),
+    };
     (prisma.product.update as jest.Mock).mockResolvedValue(updatedProductMock);
 
     const product = await updateProductService(productIdToUpdate, updateData);
     expect(product).toEqual(updatedProductMock);
-    expect(prisma.product.findUnique).toHaveBeenCalledWith({ where: { id: productIdToUpdate } });
+    expect(prisma.product.findUnique).toHaveBeenCalledWith({
+      where: { id: productIdToUpdate },
+    });
     expect(prisma.product.update).toHaveBeenCalledWith({
       where: { id: productIdToUpdate },
       data: updateData,
@@ -406,8 +501,12 @@ describe('updateProductService', () => {
   it('should throw an error if product to update is not found', async () => {
     (prisma.product.findUnique as jest.Mock).mockResolvedValue(null);
 
-    await expect(updateProductService('non-existent-id', updateData)).rejects.toThrow('Product not found');
-    expect(prisma.product.findUnique).toHaveBeenCalledWith({ where: { id: 'non-existent-id' } });
+    await expect(
+      updateProductService('non-existent-id', updateData),
+    ).rejects.toThrow('Product not found');
+    expect(prisma.product.findUnique).toHaveBeenCalledWith({
+      where: { id: 'non-existent-id' },
+    });
     expect(prisma.product.update).not.toHaveBeenCalled();
   });
 });
@@ -423,27 +522,41 @@ describe('deleteProductService', () => {
     // The individual operations (deleteMany, delete) are already jest.fn(),
     // and by default they resolve with 'undefined', which is fine for delete operations.
     // So, the Promise.all(args) in the main mock should work.
-    (prisma.$transaction as jest.Mock).mockImplementation(async (operations) => {
+    (prisma.$transaction as jest.Mock).mockImplementation(
+      async (operations) => {
         // For this test, we just need the transaction to "complete"
         // The individual mocks (deleteMany, delete) will be called.
         // We can return mock counts or the deleted product if needed, but service doesn't use them.
-        return [ { count: 1 }, { count: 1 }, existingProduct];
-    });
+        return [{ count: 1 }, { count: 1 }, existingProduct];
+      },
+    );
 
     await deleteProductService(productIdToDelete);
 
-    expect(prisma.product.findUnique).toHaveBeenCalledWith({ where: { id: productIdToDelete } });
+    expect(prisma.product.findUnique).toHaveBeenCalledWith({
+      where: { id: productIdToDelete },
+    });
     expect(prisma.$transaction).toHaveBeenCalled();
-    expect(prisma.inventoryAdjustment.deleteMany).toHaveBeenCalledWith({ where: { productId: productIdToDelete } });
-    expect(prisma.locationHistory.deleteMany).toHaveBeenCalledWith({ where: { productId: productIdToDelete } });
-    expect(prisma.product.delete).toHaveBeenCalledWith({ where: { id: productIdToDelete } });
+    expect(prisma.inventoryAdjustment.deleteMany).toHaveBeenCalledWith({
+      where: { productId: productIdToDelete },
+    });
+    expect(prisma.locationHistory.deleteMany).toHaveBeenCalledWith({
+      where: { productId: productIdToDelete },
+    });
+    expect(prisma.product.delete).toHaveBeenCalledWith({
+      where: { id: productIdToDelete },
+    });
   });
 
   it('should throw an error if product to delete is not found', async () => {
     (prisma.product.findUnique as jest.Mock).mockResolvedValue(null);
 
-    await expect(deleteProductService('non-existent-id')).rejects.toThrow('Product not found');
-    expect(prisma.product.findUnique).toHaveBeenCalledWith({ where: { id: 'non-existent-id' } });
+    await expect(deleteProductService('non-existent-id')).rejects.toThrow(
+      'Product not found',
+    );
+    expect(prisma.product.findUnique).toHaveBeenCalledWith({
+      where: { id: 'non-existent-id' },
+    });
     expect(prisma.$transaction).not.toHaveBeenCalled();
   });
 });
