@@ -16,13 +16,14 @@ services:
 
   backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: . # Changed from ./backend
+      dockerfile: Dockerfile # Assumes Dockerfile is in the root
     container_name: inventory-backend
+    env_file: .env # Added for JWT_SECRET and other secrets
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/inventory
-      - JWT_SECRET=your_jwt_secret_key_here
+      # JWT_SECRET removed, should be in .env
       - PORT=3001
     ports:
       - "3001:3001"
@@ -32,9 +33,12 @@ services:
 
   frontend:
     build:
-      context: ./frontend
-      dockerfile: Dockerfile
+      context: . # Changed from ./frontend, assuming root for now
+      dockerfile: Dockerfile.frontend # Placeholder, needs to be created
     container_name: inventory-frontend
+    env_file: .env # Added for VITE_API_URL and other potential frontend env vars
+    environment:
+      - VITE_API_URL=${VITE_API_URL:-http://localhost:3001/api}
     ports:
       - "3000:80"
     depends_on:

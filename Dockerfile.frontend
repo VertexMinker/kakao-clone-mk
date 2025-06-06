@@ -1,0 +1,41 @@
+# Stage 1: Build the React application
+FROM node:18-alpine AS builder
+
+WORKDIR /app
+
+# Copy package.json and package-lock.json (or yarn.lock)
+COPY package*.json ./
+
+# Install all dependencies (including devDependencies for building)
+# If frontend had its own package.json, we'd cd into its folder
+RUN npm ci
+
+# Copy frontend source code
+# We need to be specific to avoid backend files if context is '.'
+# Copy essential config files
+COPY vite.config.ts .
+COPY tsconfig.json .
+COPY index.html .
+# Copy source and public assets
+COPY src ./src
+COPY public ./public
+
+# Build the frontend application
+# This will output to /app/dist by default for Vite
+RUN npm run build:frontend
+
+# Stage 2: Serve the application with Nginx
+FROM nginx:alpine
+
+# Copy nginx configuration
+COPY nginx.conf /etc/nginx/nginx.conf
+
+# Copy built assets from the builder stage
+# Vite builds to 'dist' by default.
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Expose port 80
+EXPOSE 80
+
+# Start Nginx
+CMD ["nginx", "-g", "daemon off;"]

@@ -21,13 +21,17 @@ cd inventory-system
 
 ### 2. 환경 변수 설정
 
-`.env` 파일을 생성하고 다음 내용을 입력합니다:
+ 프로젝트 루트 디렉토리에 `.env` 파일을 생성하고 다음 내용을 입력합니다. `JWT_SECRET`은 반드시 설정해야 합니다.
 
 ```
 DATABASE_URL=postgresql://postgres:postgres@postgres:5432/inventory
 JWT_SECRET=your_jwt_secret_key_here
 PORT=3001
+VITE_API_URL=http://localhost:3001/api
 ```
+**참고:**
+- `DATABASE_URL`은 Docker Compose를 사용하여 백엔드를 실행할 경우 Docker 내부 네트워크의 PostgreSQL을 가리킵니다. Docker 없이 로컬에서 백엔드를 직접 실행하는 경우, 이 값을 로컬 PostgreSQL 인스턴스의 연결 문자열로 변경해야 합니다. (아래 "Local Development" 섹션 참조)
+- `VITE_API_URL`은 프론트엔드가 백엔드 API와 통신하기 위한 URL입니다. 로컬 개발 시 백엔드 PORT와 맞춰주세요.
 
 ### 3. Docker Compose로 시스템 실행
 
@@ -178,3 +182,75 @@ docker-compose up -d
 문제가 발생하거나 추가 지원이 필요한 경우 다음 연락처로 문의해 주세요:
 - 이메일: support@kyobobook.com
 - 전화: 02-1234-5678
+
+---
+
+## Local Development (Without Docker)
+
+Docker를 사용하지 않고 로컬 환경에서 직접 프론트엔드와 백엔드를 실행할 수 있습니다.
+
+### Prerequisites
+
+- Node.js (권장 버전: v18 또는 최신 LTS)
+- npm 또는 yarn
+- 로컬 PostgreSQL 데이터베이스 인스턴스 실행 중
+
+### Steps
+
+1.  **저장소 복제:**
+    ```bash
+    git clone https://github.com/kyobobook-hottracks/inventory-system.git
+    cd inventory-system
+    ```
+
+2.  **루트 디렉토리에서 의존성 설치:**
+    ```bash
+    npm install
+    ```
+    (또는 `yarn install`)
+
+3.  **PostgreSQL 설정:**
+    로컬에 PostgreSQL을 설치하고 실행합니다. 데이터베이스를 생성하고 연결 문자열(Connection String)을 준비합니다. (예: `postgresql://USER:PASSWORD@HOST:PORT/DATABASE`)
+
+4.  **`.env` 파일 생성:**
+    프로젝트 루트 디렉토리에 `.env` 파일을 생성합니다. (존재하는 경우, `.env.example` 파일을 복사하여 사용하거나 아래 내용을 참고하여 작성합니다.)
+    ```env
+    DATABASE_URL="your_local_postgres_connection_string" # 예: postgresql://user:password@localhost:5432/inventory_db
+    JWT_SECRET="your_very_strong_and_secret_jwt_key"    # 강력한 비밀키로 변경하세요
+    PORT=3001                                           # 백엔드 서버 포트
+    VITE_API_URL=http://localhost:3001/api              # 프론트엔드가 백엔드 API를 호출할 URL
+    ```
+
+5.  **데이터베이스 마이그레이션:**
+    Prisma를 사용하여 데이터베이스 스키마를 적용합니다.
+    ```bash
+    npx prisma migrate deploy
+    ```
+    (개발 중 스키마 변경이 잦을 경우 `npx prisma migrate dev` 사용 가능)
+
+6.  **백엔드 서버 실행:**
+    다음 명령어로 백엔드 개발 서버를 시작합니다. (아직 `package.json`에 `dev:server` 스크립트가 없다면 추가 필요)
+    ```bash
+    # package.json에 "dev:server": "ts-node-dev --respawn --transpile-only src/server/index.ts" 와 같이 추가 가정
+    npm run dev:server
+    ```
+    기본적으로 `http://localhost:3001` 에서 실행됩니다.
+
+7.  **프론트엔드 개발 서버 실행:**
+    다음 명령어로 프론트엔드 개발 서버(Vite)를 시작합니다. (아직 `package.json`에 `dev:client` 스크립트가 없다면 추가 필요)
+    ```bash
+    # package.json에 "dev:client": "vite --config vite.config.ts --port 3000" 와 같이 추가 가정 (Vite가 src 폴더 기준이 아닐 경우 경로 조정 필요)
+    npm run dev:client
+    ```
+    기본적으로 `http://localhost:3000` 에서 실행되며, 백엔드 API (`http://localhost:3001/api`)와 통신합니다.
+
+    **Note on Local Builds:** Both the backend build (`npm run build`) and frontend build (`npm run build:frontend`) output to the root `dist/` directory. If you are building both locally without Docker, ensure you clean the `dist/` directory between builds or configure Vite's `outDir` in `vite.config.ts` (e.g., to `dist-frontend`) to avoid conflicts.
+
+## Running Tests
+
+프로젝트의 테스트를 실행하려면 다음 명령어를 사용합니다:
+
+```bash
+npm run test
+```
+이 명령어는 Jest 테스트 스위트를 실행하여 서비스 로직의 정확성을 검증합니다.

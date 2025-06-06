@@ -11,9 +11,7 @@ import { sendLowStockAlert } from '../utils/email';
 // Type for what updateProductService accepts (partial data)
 export type UpdateProductData = Partial<ProductFormData>;
 
-const getProducts = async (
-  filters: ProductFilter,
-): Promise<Product[]> => {
+const getProducts = async (filters: ProductFilter): Promise<Product[]> => {
   const whereClause: any = {};
   if (filters.search) {
     whereClause.OR = [
@@ -48,24 +46,28 @@ const getProducts = async (
     where: whereClause,
     orderBy: { updatedAt: 'desc' },
   });
-  return products.map(p => ({ ...p, createdAt: p.createdAt.toISOString(), updatedAt: p.updatedAt.toISOString() })) as Product[];
+  return products.map((p) => ({
+    ...p,
+    createdAt: p.createdAt.toISOString(),
+    updatedAt: p.updatedAt.toISOString(),
+  })) as Product[];
 };
 
-const getProductById = async (
-  id: string,
-): Promise<Product | null> => {
+const getProductById = async (id: string): Promise<Product | null> => {
   const product = await prisma.product.findUnique({
     where: { id },
   });
   if (!product) {
     throw new Error('Product not found');
   }
-  return { ...product, createdAt: product.createdAt.toISOString(), updatedAt: product.updatedAt.toISOString() } as Product;
+  return {
+    ...product,
+    createdAt: product.createdAt.toISOString(),
+    updatedAt: product.updatedAt.toISOString(),
+  } as Product;
 };
 
-const createProduct = async (
-  data: ProductFormData,
-): Promise<Product> => {
+const createProduct = async (data: ProductFormData): Promise<Product> => {
   const existingSku = await prisma.product.findUnique({
     where: { sku: data.sku },
   });
@@ -75,7 +77,11 @@ const createProduct = async (
   const newProduct = await prisma.product.create({
     data,
   });
-  return { ...newProduct, createdAt: newProduct.createdAt.toISOString(), updatedAt: newProduct.updatedAt.toISOString() } as Product;
+  return {
+    ...newProduct,
+    createdAt: newProduct.createdAt.toISOString(),
+    updatedAt: newProduct.updatedAt.toISOString(),
+  } as Product;
 };
 
 const updateProduct = async (
@@ -102,7 +108,11 @@ const updateProduct = async (
       );
     }
   }
-  return { ...updatedProduct, createdAt: updatedProduct.createdAt.toISOString(), updatedAt: updatedProduct.updatedAt.toISOString() } as Product;
+  return {
+    ...updatedProduct,
+    createdAt: updatedProduct.createdAt.toISOString(),
+    updatedAt: updatedProduct.updatedAt.toISOString(),
+  } as Product;
 };
 
 const deleteProduct = async (id: string): Promise<void> => {
@@ -160,8 +170,15 @@ const adjustInventory = async (
       }
     }
     return {
-      product: { ...updatedProduct, createdAt: updatedProduct.createdAt.toISOString(), updatedAt: updatedProduct.updatedAt.toISOString() } as Product,
-      adjustment: { ...adjustment, createdAt: adjustment.createdAt.toISOString() } as InventoryAdjustment,
+      product: {
+        ...updatedProduct,
+        createdAt: updatedProduct.createdAt.toISOString(),
+        updatedAt: updatedProduct.updatedAt.toISOString(),
+      } as Product,
+      adjustment: {
+        ...adjustment,
+        createdAt: adjustment.createdAt.toISOString(),
+      } as InventoryAdjustment,
     };
   });
 };
@@ -196,16 +213,26 @@ const moveLocation = async (
       },
     });
     return {
-      product: { ...updatedProduct, createdAt: updatedProduct.createdAt.toISOString(), updatedAt: updatedProduct.updatedAt.toISOString() } as Product,
-      locationHistory: { ...locationHistoryEntry, movedAt: locationHistoryEntry.movedAt.toISOString() } as LocationHistory,
+      product: {
+        ...updatedProduct,
+        createdAt: updatedProduct.createdAt.toISOString(),
+        updatedAt: updatedProduct.updatedAt.toISOString(),
+      } as Product,
+      locationHistory: {
+        ...locationHistoryEntry,
+        movedAt: locationHistoryEntry.movedAt.toISOString(),
+      } as LocationHistory,
     };
   });
 };
 
-const getLocationHistory = async ( // Renamed from getLocationHistoryService
+const getLocationHistory = async (
+  // Renamed from getLocationHistoryService
   productId: string,
 ): Promise<LocationHistory[]> => {
-  const productExists = await prisma.product.findUnique({ where: { id: productId } });
+  const productExists = await prisma.product.findUnique({
+    where: { id: productId },
+  });
   if (!productExists) {
     throw new Error('제품을 찾을 수 없습니다.');
   }
@@ -214,10 +241,14 @@ const getLocationHistory = async ( // Renamed from getLocationHistoryService
     orderBy: { movedAt: 'desc' },
     include: { user: { select: { name: true, email: true } } },
   });
-  return history.map(h => ({ ...h, movedAt: h.movedAt.toISOString() })) as LocationHistory[];
+  return history.map((h) => ({
+    ...h,
+    movedAt: h.movedAt.toISOString(),
+  })) as LocationHistory[];
 };
 
-const getProductsForExport = async ( // Renamed from getProductsForExportService
+const getProductsForExport = async (
+  // Renamed from getProductsForExportService
   filters: ProductFilter,
 ): Promise<Product[]> => {
   const products = await getProducts(filters); // Uses the internal getProducts
