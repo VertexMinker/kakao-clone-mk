@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useParams, useNavigate } from 'react-router-dom';
-import { productService } from '../server/services/productService';
+import { productService } from '../../services/productService.frontend';
 import { LocationHistory } from '../types/product';
 import { useAuth } from '../hooks/useAuth';
 import {
