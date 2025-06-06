@@ -3,7 +3,9 @@ import * as fs from 'fs';
 import * as csv from 'csv-parser';
 import { ProductFormData } from '../../types/product';
 
-export async function parseXlsxFile(filePath: string): Promise<Record<string, unknown>[]> {
+export async function parseXlsxFile(
+  filePath: string,
+): Promise<Record<string, unknown>[]> {
   const workbook = new ExcelJS.Workbook();
   await workbook.xlsx.readFile(filePath);
   const worksheet = workbook.worksheets[0];
@@ -21,7 +23,9 @@ export async function parseXlsxFile(filePath: string): Promise<Record<string, un
   return rows;
 }
 
-export async function parseCsvFile(filePath: string): Promise<Record<string, unknown>[]> {
+export async function parseCsvFile(
+  filePath: string,
+): Promise<Record<string, unknown>[]> {
   return new Promise((resolve, reject) => {
     const results: Record<string, unknown>[] = [];
     fs.createReadStream(filePath)
@@ -32,7 +36,10 @@ export async function parseCsvFile(filePath: string): Promise<Record<string, unk
   });
 }
 
-export function validateProducts(products: Record<string, unknown>[]): { validProducts: ProductFormData[]; errors: string[] } {
+export function validateProducts(products: Record<string, unknown>[]): {
+  validProducts: ProductFormData[];
+  errors: string[];
+} {
   const validProducts: ProductFormData[] = [];
   const errors: string[] = [];
 
