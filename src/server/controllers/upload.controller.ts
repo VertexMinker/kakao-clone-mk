@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../index';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as csv from 'csv-parser';
@@ -20,12 +20,22 @@ export const bulkUploadProducts = async (req: Request, res: Response) => {
     let products: any[] = [];
 
     // 파일 형식에 따라 처리
-    if (fileExtension === '.xlsx' || fileExtension === '.xls') {
+    if (fileExtension === '.xlsx') {
       // Excel 파일 처리
-      const workbook = XLSX.readFile(filePath);
-      const sheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[sheetName];
-      products = XLSX.utils.sheet_to_json(worksheet);
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.readFile(filePath);
+      const worksheet = workbook.worksheets[0];
+      const headers = (worksheet.getRow(1).values as string[]).slice(1);
+      products = [];
+      worksheet.eachRow((row, rowNumber) => {
+        if (rowNumber === 1) return;
+        const rowValues = row.values as any[];
+        const product: Record<string, unknown> = {};
+        headers.forEach((header, index) => {
+          product[String(header)] = rowValues[index + 1];
+        });
+        products.push(product);
+      });
     } else if (fileExtension === '.csv') {
       // CSV 파일 처리
       products = await new Promise((resolve, reject) => {
@@ -43,7 +53,7 @@ export const bulkUploadProducts = async (req: Request, res: Response) => {
       return res.status(400).json({
         status: 'error',
         message:
-          '지원되지 않는 파일 형식입니다. Excel 또는 CSV 파일만 업로드 가능합니다.',
+          '지원되지 않는 파일 형식입니다. XLSX 또는 CSV 파일만 업로드 가능합니다.',
       });
     }
 
