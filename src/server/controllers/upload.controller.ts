@@ -1,9 +1,12 @@
 import { Request, Response } from 'express';
 import { prisma } from '../index';
-import ExcelJS from 'exceljs';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as csv from 'csv-parser';
+import {
+  parseCsvFile,
+  parseXlsxFile,
+  validateProducts,
+} from '../utils/productUpload';
 
 export const bulkUploadProducts = async (req: Request, res: Response) => {
   try {
@@ -17,35 +20,13 @@ export const bulkUploadProducts = async (req: Request, res: Response) => {
     const filePath = req.file.path;
     const fileExtension = path.extname(req.file.originalname).toLowerCase();
 
-    let products: any[] = [];
+    let rawProducts: Record<string, unknown>[] = [];
 
     // 파일 형식에 따라 처리
     if (fileExtension === '.xlsx') {
-      // Excel 파일 처리
-      const workbook = new ExcelJS.Workbook();
-      await workbook.xlsx.readFile(filePath);
-      const worksheet = workbook.worksheets[0];
-      const headers = (worksheet.getRow(1).values as string[]).slice(1);
-      products = [];
-      worksheet.eachRow((row, rowNumber) => {
-        if (rowNumber === 1) return;
-        const rowValues = row.values as any[];
-        const product: Record<string, unknown> = {};
-        headers.forEach((header, index) => {
-          product[String(header)] = rowValues[index + 1];
-        });
-        products.push(product);
-      });
+
     } else if (fileExtension === '.csv') {
-      // CSV 파일 처리
-      products = await new Promise((resolve, reject) => {
-        const results: any[] = [];
-        fs.createReadStream(filePath)
-          .pipe(csv())
-          .on('data', (data) => results.push(data))
-          .on('end', () => resolve(results))
-          .on('error', (error) => reject(error));
-      });
+      rawProducts = await parseCsvFile(filePath);
     } else {
       // 파일 삭제
       fs.unlinkSync(filePath);
@@ -60,7 +41,7 @@ export const bulkUploadProducts = async (req: Request, res: Response) => {
     // 파일 삭제
     fs.unlinkSync(filePath);
 
-    if (products.length === 0) {
+    if (rawProducts.length === 0) {
       return res.status(400).json({
         status: 'error',
         message: '파일에 데이터가 없습니다.',
@@ -68,44 +49,7 @@ export const bulkUploadProducts = async (req: Request, res: Response) => {
     }
 
     // 데이터 유효성 검사 및 변환
-    const validProducts = [];
-    const errors = [];
-
-    for (let i = 0; i < products.length; i++) {
-      const product = products[i];
-      const rowNumber = i + 2; // 헤더 행과 0-인덱스 고려
-
-      // 필수 필드 확인
-      if (
-        !product.name ||
-        !product.sku ||
-        !product.category ||
-        !product.brand ||
-        !product.location ||
-        product.quantity === undefined ||
-        product.safetyStock === undefined ||
-        product.price === undefined
-      ) {
-        errors.push(`${rowNumber}행: 필수 필드가 누락되었습니다.`);
-        continue;
-      }
-
-      // 데이터 타입 변환
-      try {
-        validProducts.push({
-          name: String(product.name),
-          sku: String(product.sku),
-          category: String(product.category),
-          brand: String(product.brand),
-          location: String(product.location),
-          quantity: parseInt(product.quantity),
-          safetyStock: parseInt(product.safetyStock),
-          price: parseFloat(product.price),
-        });
-      } catch (error) {
-        errors.push(`${rowNumber}행: 데이터 형식이 올바르지 않습니다.`);
-      }
-    }
+    const { validProducts, errors } = validateProducts(rawProducts);
 
     if (validProducts.length === 0) {
       return res.status(400).json({
