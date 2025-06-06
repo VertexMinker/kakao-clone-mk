@@ -9,7 +9,8 @@ export const getAllProducts = async (req: Request, res: Response) => {
     const { search, category, brand, location, lowStock } = req.query;
 
     // Pass query parameters as an object to the service
-    const products = await productService.getProducts({ // Changed here
+    const products = await productService.getProducts({
+      // Changed here
       search: search as string | undefined,
       category: category as string | undefined,
       brand: brand as string | undefined,
@@ -297,7 +298,8 @@ export const adjustInventory = async (req: Request, res: Response) => {
       });
     }
 
-    const result = await productService.adjustInventory( // Changed here
+    const result = await productService.adjustInventory(
+      // Changed here
       productId,
       userId,
       adjustmentQuantity,
@@ -368,7 +370,8 @@ export const moveProductLocation = async (req: Request, res: Response) => {
       });
     }
 
-    const result = await productService.moveLocation( // Changed here
+    const result = await productService.moveLocation(
+      // Changed here
       productId,
       userId,
       toLocation,
@@ -427,7 +430,8 @@ export const exportProducts = async (req: Request, res: Response) => {
   try {
     const { search, category, brand, location, lowStock } = req.query;
 
-    const products = await productService.getProductsForExport({ // Changed here
+    const products = await productService.getProductsForExport({
+      // Changed here
       search: search as string | undefined,
       category: category as string | undefined,
       brand: brand as string | undefined,
