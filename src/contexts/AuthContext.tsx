@@ -15,8 +15,12 @@ export const AuthContext = createContext<AuthContextType>({
   user: null,
   isAuthenticated: false,
   isLoading: true,
-  login: async () => {},
-  logout: () => {},
+  login: async () => {
+    // TODO: Implement login logic
+  },
+  logout: () => {
+    // TODO: Implement logout logic
+  },
 });
 
 interface AuthProviderProps {

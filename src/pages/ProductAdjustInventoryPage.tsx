@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { productService } from '../server/services/productService';
-import { offlineService } from '../server/services/offlineService';
+import { productService } from '../../services/productService.frontend';
+import { offlineService } from '../../services/offlineSync.frontend.service';
 import { useAuth } from '../hooks/useAuth';
 import { useSyncOffline } from '../hooks/useSyncOffline';
 import { useToast } from '../components/ui/use-toast';

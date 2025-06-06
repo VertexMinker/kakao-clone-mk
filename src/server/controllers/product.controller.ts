@@ -1,25 +1,15 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
 import { prisma } from '../index';
-import { sendLowStockAlert } from '../utils/email';
-import {
-  getAllProductsService,
-  getProductByIdService,
-  createProductService,
-  updateProductService,
-  deleteProductService,
-  adjustInventory as adjustInventoryService, // Alias to avoid name collision
-  moveProductLocation as moveProductLocationService, // Alias to avoid name collision
-  getLocationHistoryService,
-  getProductsForExportService,
-} from '../services/productService';
+// import { sendLowStockAlert } from '../utils/email'; // Not directly used in controller, but by service
+import { productService } from '../services/productService';
 
 export const getAllProducts = async (req: Request, res: Response) => {
   try {
     const { search, category, brand, location, lowStock } = req.query;
 
     // Pass query parameters as an object to the service
-    const products = await getAllProductsService({
+    const products = await productService.getProducts({ // Changed here
       search: search as string | undefined,
       category: category as string | undefined,
       brand: brand as string | undefined,
@@ -43,7 +33,7 @@ export const getAllProducts = async (req: Request, res: Response) => {
 export const getProductById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const product = await getProductByIdService(id);
+    const product = await productService.getProductById(id); // Changed here
 
     return res.status(200).json({
       status: 'success',
@@ -106,7 +96,7 @@ export const createProduct = async (req: Request, res: Response) => {
     }
 
     const productDetails = result.data;
-    const newProduct = await createProductService(productDetails);
+    const newProduct = await productService.createProduct(productDetails); // Changed here
 
     return res.status(201).json({
       status: 'success',
@@ -202,7 +192,7 @@ export const updateProduct = async (req: Request, res: Response) => {
       });
     }
 
-    const updatedProduct = await updateProductService(id, updateData);
+    const updatedProduct = await productService.updateProduct(id, updateData); // Changed here
 
     return res.status(200).json({
       status: 'success',
@@ -238,7 +228,7 @@ export const deleteProduct = async (req: Request, res: Response) => {
       });
     }
     const { id } = paramsResult.data;
-    await deleteProductService(id);
+    await productService.deleteProduct(id); // Changed here
 
     return res.status(200).json({
       status: 'success',
@@ -307,7 +297,7 @@ export const adjustInventory = async (req: Request, res: Response) => {
       });
     }
 
-    const result = await adjustInventoryService(
+    const result = await productService.adjustInventory( // Changed here
       productId,
       userId,
       adjustmentQuantity,
@@ -378,7 +368,7 @@ export const moveProductLocation = async (req: Request, res: Response) => {
       });
     }
 
-    const result = await moveProductLocationService(
+    const result = await productService.moveLocation( // Changed here
       productId,
       userId,
       toLocation,
@@ -412,7 +402,7 @@ export const moveProductLocation = async (req: Request, res: Response) => {
 export const getLocationHistory = async (req: Request, res: Response) => {
   try {
     const productId = req.params.id;
-    const locationHistory = await getLocationHistoryService(productId);
+    const locationHistory = await productService.getLocationHistory(productId); // Changed here
 
     return res.status(200).json({
       status: 'success',
@@ -437,7 +427,7 @@ export const exportProducts = async (req: Request, res: Response) => {
   try {
     const { search, category, brand, location, lowStock } = req.query;
 
-    const products = await getProductsForExportService({
+    const products = await productService.getProductsForExport({ // Changed here
       search: search as string | undefined,
       category: category as string | undefined,
       brand: brand as string | undefined,

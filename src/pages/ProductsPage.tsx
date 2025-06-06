@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { productService } from '../server/services/productService';
+import { productService } from '../../services/productService.frontend';
 import { Product, ProductFilter } from '../types/product';
 import {
   Search,
