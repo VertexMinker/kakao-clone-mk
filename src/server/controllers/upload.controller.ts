@@ -24,7 +24,7 @@ export const bulkUploadProducts = async (req: Request, res: Response) => {
 
     // 파일 형식에 따라 처리
     if (fileExtension === '.xlsx') {
-      rawProducts = await parseXlsxFile(filePath);
+
     } else if (fileExtension === '.csv') {
       rawProducts = await parseCsvFile(filePath);
     } else {
